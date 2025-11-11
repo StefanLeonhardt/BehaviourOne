@@ -9,18 +9,59 @@ library(bslib)
 library(shinyjs)
 library(DT)
 library(base64enc)
-library(readxl)
 
 ## Daten laden ####
-# Excel laden
-df_technik <- read_excel("Kategoriensystem.xlsx")  # eine Tabelle, viele Spalten
 
-# Auswahl extrahieren
-nage_waza <- na.omit(df_technik$`Nage-waza`)
-ne_waza <- na.omit(df_technik$`Ne-waza`)
-griffposition_T <- na.omit(df_technik$Griffposition_T)
-griffposition_N <- na.omit(df_technik$Griffposition_N)
-angriffsposition <- na.omit(df_technik$Angriffsposition)
+# Erstelle Vektoren für Kategoriensystem
+griffposition_T <- c("Ärmel-Revers", "Ärmel-Rücken", "Ärmel-Kragen-oben", "Ärmel-Kragen-unten", 
+                     "Ärmel-Hüfte", "Ärmel-Schulter", "Ärmel-Gürtel", "Ärmel-Ärmel", "Ärmel-NULL",
+                     "Revers-Revers", "Revers-Ärmel", "Revers-Rücken", "Revers-Schulter", "Revers-Hüfte",
+                     "Revers-Gürtel", "Revers-NULL", "Revers-Kragen-oben", "Revers-Kragen-unten",
+                     "Gürtel-Gürtel", "Gürtel-Revers", "Gürtel-Rücken", "Gürtel-Hüfte", "Gürtel-Schulter",
+                     "Gürtel-Kragen-oben", "Schulter-Schulter", "Schulter-Revers", "Schulter-Hüfte",
+                     "Schulter-Rücken", "Schulter-Kragen-oben", "Schulter-Ärmel", "Schulter-Gürtel",
+                     "CR-Ärmel-Rücken", "CR-Ärmel-Gürtel", "CR-Ärmel-Ärmel", "CR-Gürtel-Rücken",
+                     "CR-Schulter-Rücken", "CR-Revers-Rücken", "CR-Revers-Gürtel", "CR-Revers-Ärmel",
+                     "NULL-Revers", "NULL-Ärmel", "NULL-Rücken", "NULL-Schulter", "NULL-Kragen-oben",
+                     "NULL-Kragen-unten", "NULL-Gürtel", "NULL-Hüfte", "DI-Ärmel-Revers", "DI-Ärmel-Gürtel",
+                     "DI-Ärmel-Hüfte", "DI-Ärmel-Schulter", "DI-Ärmel-Ärmel", "DI-Ärmel-NULL",
+                     "DI-Ärmel-Kragen", "DI-Revers-Rücken", "DI-Revers-Kragen", "DI-Revers-Hüfte",
+                     "DI-Revers-NULL", "DI-Revers-Gürtel", "DI-Revers-Ärmel", "DI-Revers-Revers",
+                     "ER-Ärmel-Revers", "ER-NULL-Revers", "ER-Revers-Revers", "ER-Ärmel-Ärmel",
+                     "ER-Gürtel-Revers", "Hüfte-Kragen-oben", "Hüfte-Rücken", "Hüfte-Hüfte",
+                     "Hüfte-Schulter", "Hüfte-Ärmel")
+
+nage_waza <- c("Ashi-guruma", "Daki-wakare", "De-ashi-harai", "Hane-goshi", "Hane-goshi-gaeshi",
+               "Hane-makikomi", "Harai-goshi", "Harai-goshi-gaeshi", "Harai-makikomi", "Harai-tsurikomi-ashi",
+               "Hikikomi-gaeshi", "Hiza-guruma", "Ippon-seoi-nage", "Kata-Guruma", "Kawazu-gake",
+               "Kibishu-gaeshi", "Koshi-guruma", "Ko-soto-gake", "Ko-soto-gari", "Ko-uchi-gaeshi",
+               "Ko-uchi-gari", "Ko-uchi-makikomi", "Kuchiki-taoshi", "Morote-gari", "Obi-otoshi",
+               "Obi-tori-gaeshi", "O-goshi", "O-guruma", "Okuri-ashi-harai", "O-soto-gaeshi",
+               "O-soto-gari", "O-soto-guruma", "O-soto-makikomi", "O-soto-otoshi", "O-uchi-gaeshi",
+               "O-uchi-gari", "Sasae-tsurikomi-ashi", "Seoi-nage", "Seoi-otoshi", "Sode-tsurikomi-goshi",
+               "Soto-makikomi", "Sukui-nage", "Sumi-gaeshi", "Sumi-otoshi", "Tai-otoshi",
+               "Tani-otoshi", "Tawara-gaeshi", "Tomoe-nage", "Tsubame-gaeshi", "Tsuri-goshi",
+               "Tsurikomi-goshi", "Uchi-makikomi", "Uchi-mata", "Uchi-mata-gaeshi", "Uchi-mata-makikomi",
+               "Uchi-mata-sukashi", "Uki-goshi", "Uki-otoshi", "Uki-waza", "Ura-nage",
+               "Ushiro-goshi", "Utsuri-goshi", "Yama-arashi", "Yoko-gake", "Yoko-guruma",
+               "Yoko-otoshi", "Yoko-wakare")
+
+ne_waza <- c("Ashi-garami", "Ashi-gatame", "Do-jime", "Gyaku-juji-jime", "Hadaka-jime",
+             "Hara-gatame", "Hiza-gatame", "Juji-gatame", "Kami-shiho-gatame", "Kata-gatame",
+             "Kataha-jime", "Kata-juji-jime", "Katate-jime", "Kesa-gatame", "Kuzure-kami-shiho-gatame",
+             "Kuzure-kesa-gatame", "Nami-juji-jime", "Okuri-eri-jime", "Ryote-jime", "Sankaku-gatame",
+             "Sankaku-jime", "Sode-guruma-jime", "Tate-shiho-gatame", "Te-gatame", "Tsukkomi-jime",
+             "Ude-garami", "Ude-gatame", "Uki-gatame", "Ura-gatame", "Ushiro-kesa-gatame",
+             "Waki-gatame", "Yoko-shiho-gatame")
+
+griffposition_N <- c("Arm", "Armpit", "Belt", "Cest", "Hairikata", "Kata gatame hairikata",
+                     "Leg", "Nek", "Pass the legs", "Sankaku hook", "Stomach")
+
+angriffsposition <- c("Back", "Direct", "Down", "Front", "Inside", "Side DX", "Side SX", "Top")
+
+taisabaki <- c("Ayumi-ashi", "Mae-mawari-sabaki", "Mae-sabaki", "Mawari-komi", "Oi-komi",
+               "Tobi-komi", "Tsugi-ashi", "Ushiro-mawari-sabaki", "Ushiro-sabaki")
+
 
 ## Definiere das Kategoriensystem mit Inputtypen ####
 categories <- list(
