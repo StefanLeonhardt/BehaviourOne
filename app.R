@@ -141,47 +141,51 @@ categories <- list(
       )
     )
   ),
-  "Weiss" = list(  
+  "Weiss" = list(
     "Kontaktaufnahme" = list(
       "Laufrichtung" = list(
         type = "radio",
-        choices = c("Mattenrand", "Mattenzentrum", "Mattenecke")
+        choices = c("Mattenrand" = "MR", "Mattenzentrum" = "MZ", "Mattenecke" = "ME")
       ),
       "Kampfauslage" = list(
         type = "radio",
-        choices = c("LL", "RL", "LR", "RR")
-      ),
-      "Wertungsstand" = list(
-        type = "select",
-        choices = c("Führung", "Rückstand", "Gleichstand")
+        choices = c("Links vs. Links" = "LL", "Rechts vs. Links" = "RL", "Links vs. Rechts" = "LR", "Rechts vs. Rechts" = "RR")
       ),
       "Art der Kontaktaufnahme" = list(
         type = "radio",
-        choices = c("Überfallartig", "Offensiv", "Defensiv", "Neutral")
+        choices = c("Überfallartig" = "UFA", "Offensiv" = "OFF", "Defensiv" = "DEF", "Neutral" = "NEU")
       )
     ),
     "Kumi kata" = list(
-      "Griffsystem" = list(
+      "Grifferöffnung (GE)" = list(
         type = "select",
         choices = griffposition_T
       ),
-      "Distanz" = list(
+      "Distanz GE" = list(
         type = "radio",
-        choices = c("Halbdistanz", "Normal", "Infight")
+        choices = c("Halbdistanz" = "LAN", "Normal" = "MIT", "Infight" = "KUR")
       ),
-      "Kampfauslage" = list(
+      "Kampfauslage GE" = list(
         type = "radio",
-        choices = c("LL", "RL", "LR", "RR")
+        choices = c("Links vs. Links" = "LL", "Rechts vs. Links" = "RL", "Links vs. Rechts" = "LR", "Rechts vs. Rechts" = "RR")
       ),
-      "Wertungsstand" = list(
+    "Griffvorteil (GV)" = list(
+        type = "select",
+        choices = griffposition_T
+      ),
+      "Distanz GV" = list(
         type = "radio",
-        choices = c("Führung", "Rückstand", "Gleichstand")
+        choices = c("Halbdistanz" = "LAN", "Normal" = "MIT", "Infight" = "KUR")
+      ),
+      "Kampfauslage GV" = list(
+        type = "radio",
+        choices = c("Links vs. Links" = "LL", "Rechts vs. Links" = "RL", "Links vs. Rechts" = "LR", "Rechts vs. Rechts" = "RR")
       )
-    ),
+  ),
     "Angriff Stand" = list(
       "Art des Angriffs" = list(
         type = "radio",
-        choices = c("Direktangriff", "Gegenangriff", "Kombination", "Finte")
+        choices = c("Direktangriff" = "DA", "Konterangriff" = "KA", "Kombination" = "KO", "Finte" = "FI")
       ),
       "Nage waza" = list(
         type = "selectize",
@@ -189,7 +193,7 @@ categories <- list(
       ),
       "Wertung" = list(
         type = "radio",
-        choices = c("No Score", "Kinza", "Yuko", "Waza-ari", "Ippon", "Shido")
+        choices = c("No Score" = "NS", "Yuko" = "YU", "Waza-ari" = "WA", "Ippon" = "IP")
       )
     ),
     "Übergang-Stand-Boden" = list(
