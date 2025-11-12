@@ -13,7 +13,7 @@ library(base64enc)
 ## Daten laden ####
 
 # Erstelle Vektoren für Kategoriensystem
-griffposition_T <- c("Ärmel-Revers", "Ärmel-Rücken", "Ärmel-Kragen-oben", "Ärmel-Kragen-unten", 
+griffposition_T <- c("","Ärmel-Revers", "Ärmel-Rücken", "Ärmel-Kragen-oben", "Ärmel-Kragen-unten", 
                      "Ärmel-Hüfte", "Ärmel-Schulter", "Ärmel-Gürtel", "Ärmel-Ärmel", "Ärmel-NULL",
                      "Revers-Revers", "Revers-Ärmel", "Revers-Rücken", "Revers-Schulter", "Revers-Hüfte",
                      "Revers-Gürtel", "Revers-NULL", "Revers-Kragen-oben", "Revers-Kragen-unten",
@@ -31,7 +31,7 @@ griffposition_T <- c("Ärmel-Revers", "Ärmel-Rücken", "Ärmel-Kragen-oben", "�
                      "ER-Gürtel-Revers", "Hüfte-Kragen-oben", "Hüfte-Rücken", "Hüfte-Hüfte",
                      "Hüfte-Schulter", "Hüfte-Ärmel")
 
-nage_waza <- c("Ashi-guruma", "Daki-wakare", "De-ashi-harai", "Hane-goshi", "Hane-goshi-gaeshi",
+nage_waza <- c("","Ashi-guruma", "Daki-wakare", "De-ashi-harai", "Hane-goshi", "Hane-goshi-gaeshi",
                "Hane-makikomi", "Harai-goshi", "Harai-goshi-gaeshi", "Harai-makikomi", "Harai-tsurikomi-ashi",
                "Hikikomi-gaeshi", "Hiza-guruma", "Ippon-seoi-nage", "Kata-Guruma", "Kawazu-gake",
                "Kibishu-gaeshi", "Koshi-guruma", "Ko-soto-gake", "Ko-soto-gari", "Ko-uchi-gaeshi",
@@ -46,7 +46,7 @@ nage_waza <- c("Ashi-guruma", "Daki-wakare", "De-ashi-harai", "Hane-goshi", "Han
                "Ushiro-goshi", "Utsuri-goshi", "Yama-arashi", "Yoko-gake", "Yoko-guruma",
                "Yoko-otoshi", "Yoko-wakare")
 
-ne_waza <- c("Ashi-garami", "Ashi-gatame", "Do-jime", "Gyaku-juji-jime", "Hadaka-jime",
+ne_waza <- c("","Ashi-garami", "Ashi-gatame", "Do-jime", "Gyaku-juji-jime", "Hadaka-jime",
              "Hara-gatame", "Hiza-gatame", "Juji-gatame", "Kami-shiho-gatame", "Kata-gatame",
              "Kataha-jime", "Kata-juji-jime", "Katate-jime", "Kesa-gatame", "Kuzure-kami-shiho-gatame",
              "Kuzure-kesa-gatame", "Nami-juji-jime", "Okuri-eri-jime", "Ryote-jime", "Sankaku-gatame",
@@ -59,9 +59,10 @@ griffposition_N <- c("Arm", "Armpit", "Belt", "Cest", "Hairikata", "Kata gatame 
 
 angriffsposition <- c("Back", "Direct", "Down", "Front", "Inside", "Side DX", "Side SX", "Top")
 
-taisabaki <- c("Ayumi-ashi", "Mae-mawari-sabaki", "Mae-sabaki", "Mawari-komi", "Oi-komi",
-               "Tobi-komi", "Tsugi-ashi", "Ushiro-mawari-sabaki", "Ushiro-sabaki")
+taisabaki <- c("Shinzentai" = "NS", "Jigotai" = "JGT","Ayumi-ashi" = "aya", "Mae-mawari-sabaki" = "mms", "Mae-sabaki" = "mas", "Mawari-komi" = "kaw", "Oi-komi" = "okm",
+               "Tobi-komi" = "tob", "Tsugi-ashi" = "tas", "Ushiro-mawari-sabaki" = "ums", "Ushiro-sabaki" = "uss")
 
+aktionsart <- c("Direktangriff" = "DA", "Konterangriff" = "KA", "Kombination" = "KO", "Finte" = "FI", "Ausweichen" = "AW", "Blocken" = "BL","Ausweichen mit Block" = "AWBL", "Übertriebenes Ausweichen" = "NO", "Blocken mit Ausweichen" = "BLAW")
 
 ## Definiere das Kategoriensystem mit Inputtypen ####
 categories <- list(
@@ -69,7 +70,7 @@ categories <- list(
     "Kontaktaufnahme" = list(
       "Laufrichtung" = list(
         type = "radio",
-        choices = c("Mattenrand" = "MR", "Mattenzentrum" = "MZ", "Mattenecke" = "ME")
+        choices = c("Seitlich zum Mattenrand" = "SMR", "Rückwärts zum Mattenrand" = "RMR", "Vorwärts zum Mattenrand" = "VMR", "Mattenzentrum" = "MZ", "Seitlich zur Mattenecke" = "SME", "Rückwärts zur Mattenecke" = "SME", "Vorwärts zur Mattenecke" = "VME")
       ),
       "Kampfauslage" = list(
         type = "radio",
@@ -81,35 +82,23 @@ categories <- list(
       )
     ),
     "Kumi kata" = list(
-      "Grifferöffnung (GE)" = list(
+      "Griffsystem" = list(
         type = "select",
         choices = griffposition_T
       ),
-      "Distanz GE" = list(
+      "Distanz" = list(
         type = "radio",
         choices = c("Halbdistanz" = "LAN", "Normal" = "MIT", "Infight" = "KUR")
       ),
-      "Kampfauslage GE" = list(
+      "Kampfauslage" = list(
         type = "radio",
         choices = c("Links vs. Links" = "LL", "Rechts vs. Links" = "RL", "Links vs. Rechts" = "LR", "Rechts vs. Rechts" = "RR")
-      ),
-    "Griffvorteil (GV)" = list(
-        type = "select",
-        choices = griffposition_T
-      ),
-      "Distanz GV" = list(
-        type = "radio",
-        choices = c("Halbdistanz" = "LAN", "Normal" = "MIT", "Infight" = "KUR")
-      ),
-      "Kampfauslage GV" = list(
-        type = "radio",
-        choices = c("Links vs. Links" = "LL", "Rechts vs. Links" = "RL", "Links vs. Rechts" = "LR", "Rechts vs. Rechts" = "RR")
-      )
+      )      
   ),
-    "Angriff Stand" = list(
-      "Art des Angriffs" = list(
-        type = "radio",
-        choices = c("Direktangriff" = "DA", "Konterangriff" = "KA", "Kombination" = "KO", "Finte" = "FI")
+    "Aktion" = list(
+      "Art der Aktion" = list(
+        type = "select",
+        choices = aktionsart
       ),
       "Nage waza" = list(
         type = "selectize",
@@ -117,7 +106,11 @@ categories <- list(
       ),
       "Wertung" = list(
         type = "radio",
-        choices = c("No Score" = "NS", "Yuko" = "YU", "Waza-ari" = "WA", "Ippon" = "IP")
+        choices = c("No Score" = "NS", "Yuko" = "YU", "Waza-ari" = "WA", "Ippon" = "IP", "Shido 1" = "S1", "Shido 2" = "S2", "Shido 3" = "S3", "Hansokumake" = "HAN")
+      ),
+      "Taisabaki" = list(
+        type = "radio",
+        choices = taisabaki
       )
     ),
     "Übergang-Stand-Boden" = list(
@@ -145,7 +138,7 @@ categories <- list(
     "Kontaktaufnahme" = list(
       "Laufrichtung" = list(
         type = "radio",
-        choices = c("Mattenrand" = "MR", "Mattenzentrum" = "MZ", "Mattenecke" = "ME")
+        choices = c("Seitlich zum Mattenrand" = "SMR", "Rückwärts zum Mattenrand" = "RMR", "Vorwärts zum Mattenrand" = "VMR", "Mattenzentrum" = "MZ", "Seitlich zur Mattenecke" = "SME", "Rückwärts zur Mattenecke" = "SME", "Vorwärts zur Mattenecke" = "VME")
       ),
       "Kampfauslage" = list(
         type = "radio",
@@ -157,35 +150,23 @@ categories <- list(
       )
     ),
     "Kumi kata" = list(
-      "Grifferöffnung (GE)" = list(
+      "Griffsystem" = list(
         type = "select",
         choices = griffposition_T
       ),
-      "Distanz GE" = list(
+      "Distanz" = list(
         type = "radio",
         choices = c("Halbdistanz" = "LAN", "Normal" = "MIT", "Infight" = "KUR")
       ),
-      "Kampfauslage GE" = list(
+      "Kampfauslage" = list(
         type = "radio",
         choices = c("Links vs. Links" = "LL", "Rechts vs. Links" = "RL", "Links vs. Rechts" = "LR", "Rechts vs. Rechts" = "RR")
-      ),
-    "Griffvorteil (GV)" = list(
-        type = "select",
-        choices = griffposition_T
-      ),
-      "Distanz GV" = list(
-        type = "radio",
-        choices = c("Halbdistanz" = "LAN", "Normal" = "MIT", "Infight" = "KUR")
-      ),
-      "Kampfauslage GV" = list(
-        type = "radio",
-        choices = c("Links vs. Links" = "LL", "Rechts vs. Links" = "RL", "Links vs. Rechts" = "LR", "Rechts vs. Rechts" = "RR")
-      )
+      )      
   ),
-    "Angriff Stand" = list(
-      "Art des Angriffs" = list(
-        type = "radio",
-        choices = c("Direktangriff" = "DA", "Konterangriff" = "KA", "Kombination" = "KO", "Finte" = "FI")
+    "Aktion" = list(
+      "Art der Aktion" = list(
+        type = "select",
+        choices = aktionsart
       ),
       "Nage waza" = list(
         type = "selectize",
@@ -194,6 +175,10 @@ categories <- list(
       "Wertung" = list(
         type = "radio",
         choices = c("No Score" = "NS", "Yuko" = "YU", "Waza-ari" = "WA", "Ippon" = "IP")
+      ),
+      "Taisabaki" = list(
+        type = "radio",
+        choices = taisabaki
       )
     ),
     "Übergang-Stand-Boden" = list(
