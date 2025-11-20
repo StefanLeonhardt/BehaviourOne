@@ -13,7 +13,7 @@ library(base64enc)
 ## Daten laden ####
 
 # Erstelle Vektoren für Kategoriensystem
-griffposition_T <- c("","Ärmel-Revers", "Ärmel-Rücken", "Ärmel-Kragen-oben", "Ärmel-Kragen-unten", 
+griffposition_T <- c("","kein Griff","Ärmel-Revers", "Ärmel-Rücken", "Ärmel-Kragen-oben", "Ärmel-Kragen-unten", 
                      "Ärmel-Hüfte", "Ärmel-Schulter", "Ärmel-Gürtel", "Ärmel-Ärmel", "Ärmel-NULL",
                      "Revers-Revers", "Revers-Ärmel", "Revers-Rücken", "Revers-Schulter", "Revers-Hüfte",
                      "Revers-Gürtel", "Revers-NULL", "Revers-Kragen-oben", "Revers-Kragen-unten",
@@ -29,7 +29,7 @@ griffposition_T <- c("","Ärmel-Revers", "Ärmel-Rücken", "Ärmel-Kragen-oben",
                      "DI-Revers-NULL", "DI-Revers-Gürtel", "DI-Revers-Ärmel", "DI-Revers-Revers",
                      "ER-Ärmel-Revers", "ER-NULL-Revers", "ER-Revers-Revers", "ER-Ärmel-Ärmel",
                      "ER-Gürtel-Revers", "Hüfte-Kragen-oben", "Hüfte-Rücken", "Hüfte-Hüfte",
-                     "Hüfte-Schulter", "Hüfte-Ärmel")
+                     "Hüfte-Schulter", "Hüfte-Ärmel", "Lösen mit einer Hand", "Lösen mit zwei Händen", "Wegreißen")
 
 nage_waza <- c("","Ashi-guruma", "Daki-wakare", "De-ashi-harai", "Hane-goshi", "Hane-goshi-gaeshi",
                "Hane-makikomi", "Harai-goshi", "Harai-goshi-gaeshi", "Harai-makikomi", "Harai-tsurikomi-ashi",
@@ -62,7 +62,10 @@ angriffsposition <- c("Back", "Direct", "Down", "Front", "Inside", "Side DX", "S
 taisabaki <- c("Shinzentai" = "NS", "Jigotai" = "JGT","Ayumi-ashi" = "aya", "Mae-mawari-sabaki" = "mms", "Mae-sabaki" = "mas", "Mawari-komi" = "kaw", "Oi-komi" = "okm",
                "Tobi-komi" = "tob", "Tsugi-ashi" = "tas", "Ushiro-mawari-sabaki" = "ums", "Ushiro-sabaki" = "uss")
 
-aktionsart <- c("Direktangriff" = "DA", "Konterangriff" = "KA", "Kombination" = "KO", "Finte" = "FI", "Ausweichen" = "AW", "Blocken" = "BL","Ausweichen mit Block" = "AWBL", "Übertriebenes Ausweichen" = "NO", "Blocken mit Ausweichen" = "BLAW")
+aktionsart <- c("Direktangriff" = "DA", "Konterangriff" = "KA", "Kombination" = "KO", "Finte" = "FI", "Ausweichen" = "AW", "Blocken" = "BL","Ausweichen mit Block" = "AWBL", "Übertriebenes Ausweichen" = "NO", "Blocken mit Ausweichen" = "BLAW", "keine Reaktion" = "kR")
+
+bestrafung <- c("","Non-combativity", "False attack", "Not taking grip","Blocking with one hand", "Blocking with two hand", "Cross-gripping", "Covering lapel", "Stepping out", "Leg gripping", "Reverse Seoi-nage", "Gripping inside sleeve", "Not fixing Judogi", "Pistol Grip", "other Penalty")
+
 
 ## Definiere das Kategoriensystem mit Inputtypen ####
 categories <- list(
@@ -88,14 +91,14 @@ categories <- list(
       ),
       "Distanz" = list(
         type = "radio",
-        choices = c("Halbdistanz" = "LAN", "Normal" = "MIT", "Infight" = "KUR")
+        choices = c("Halbdistanz" = "LAN", "Infight" = "KUR")
       ),
       "Kampfauslage" = list(
         type = "radio",
         choices = c("Links vs. Links" = "LL", "Rechts vs. Links" = "RL", "Links vs. Rechts" = "LR", "Rechts vs. Rechts" = "RR")
       )      
-  ),
-    "Aktion" = list(
+    ),
+    "Aktion Stand" = list(
       "Art der Aktion" = list(
         type = "select",
         choices = aktionsart
@@ -106,7 +109,7 @@ categories <- list(
       ),
       "Wertung" = list(
         type = "radio",
-        choices = c("No Score" = "NS", "Yuko" = "YU", "Waza-ari" = "WA", "Ippon" = "IP", "Shido 1" = "S1", "Shido 2" = "S2", "Shido 3" = "S3", "Hansokumake" = "HAN")
+        choices = c("","No Score" = "NS", "Yuko" = "YU", "Waza-ari" = "WA", "Ippon" = "IP", "Shido 1" = "S1", "Shido 2" = "S2", "Shido 3" = "S3", "Hansokumake" = "HAN")
       ),
       "Taisabaki" = list(
         type = "radio",
@@ -123,7 +126,7 @@ categories <- list(
         choices = angriffsposition
       )
     ),
-    "Angriff Boden" = list(
+    "Aktion Boden" = list(
       "Ne waza" = list(
         type = "selectize",
         choices = ne_waza
@@ -131,6 +134,20 @@ categories <- list(
       "Griffbeginn" = list(
         type = "radio",
         choices = griffposition_N
+      )
+    ),
+    "Unterbrechung" = list(
+      "Wertung" = list(
+        type = "radio",
+        choices = c("","No Score" = "NS", "Yuko" = "YU", "Waza-ari" = "WA", "Ippon" = "IP", "Shido 1" = "S1", "Shido 2" = "S2", "Shido 3" = "S3", "Hansokumake" = "HAN")
+      ),
+      "Art der Bestrafung" = list(
+        type = "selectize",
+        choices = bestrafung
+      ),
+      "weitere Gründe" = list(
+        type = "radio",
+        choices = c("", "Verletzung ohne Mattenarzt" = "VoM","Verletzung mit Mattenarzt" = "VmM", "Kiken gachi", "Sonstiges")
       )
     )
   ),
@@ -156,14 +173,14 @@ categories <- list(
       ),
       "Distanz" = list(
         type = "radio",
-        choices = c("Halbdistanz" = "LAN", "Normal" = "MIT", "Infight" = "KUR")
+        choices = c("Halbdistanz" = "LAN", "Infight" = "KUR")
       ),
       "Kampfauslage" = list(
         type = "radio",
         choices = c("Links vs. Links" = "LL", "Rechts vs. Links" = "RL", "Links vs. Rechts" = "LR", "Rechts vs. Rechts" = "RR")
       )      
-  ),
-    "Aktion" = list(
+    ),
+    "Aktion Stand" = list(
       "Art der Aktion" = list(
         type = "select",
         choices = aktionsart
@@ -174,7 +191,7 @@ categories <- list(
       ),
       "Wertung" = list(
         type = "radio",
-        choices = c("No Score" = "NS", "Yuko" = "YU", "Waza-ari" = "WA", "Ippon" = "IP")
+        choices = c("","No Score" = "NS", "Yuko" = "YU", "Waza-ari" = "WA", "Ippon" = "IP", "Shido 1" = "S1", "Shido 2" = "S2", "Shido 3" = "S3", "Hansokumake" = "HAN")
       ),
       "Taisabaki" = list(
         type = "radio",
@@ -200,6 +217,20 @@ categories <- list(
         type = "radio",
         choices = griffposition_N
       )
+    ),
+    "Unterbrechung" = list(
+      "Wertung" = list(
+        type = "radio",
+        choices = c("","No Score" = "NS", "Yuko" = "YU", "Waza-ari" = "WA", "Ippon" = "IP", "Shido 1" = "S1", "Shido 2" = "S2", "Shido 3" = "S3", "Hansokumake" = "HAN")
+      ),
+      "Art der Bestrafung" = list(
+        type = "selectize",
+        choices = bestrafung
+      ),
+      "weitere Gründe" = list(
+        type = "radio",
+        choices = c("", "Verletzung ohne Mattenarzt" = "VoM","Verletzung mit Mattenarzt" = "VmM", "Kiken gachi", "Sonstiges")
+      )
     )
   )
 )
@@ -223,7 +254,7 @@ ui <- page_navbar(
     style = "display: flex; align-items: center;",
     tags$img(
       src = "icon_judo.png",  # Datei im www-Ordner
-      height = "40px",
+      height = "45px",
       style = "margin-right: 10px;"  # Abstand NACH rechts
     ),
     "Behaviour One"
@@ -706,7 +737,7 @@ tags$script(HTML("
     layout_sidebar(
       sidebar = sidebar(
         width = 250,
-        open = FALSE,
+        open = TRUE,
         class = "player-sidebar",
           h5("Geladene Videos"),
           uiOutput("videoSelectionDropdown"),
@@ -737,12 +768,6 @@ tags$script(HTML("
       ),
       textOutput("currentTimeDisplay"),
 
-      # Video-Geschwindigkeitssteuerung unter dem Player
-      div(class = "video-controls",
-      sliderInput("videoSpeed", "Geschwindigkeit", 
-              min = 0.25, max = 2, value = 1, step = 0.25)
-      ),
-
       # Keyboard Shortcuts Icon mit Tooltip
       div(class = "shortcuts-icon",
         tags$i(class = "fas fa-keyboard"),
@@ -757,7 +782,7 @@ tags$script(HTML("
               tags$strong("Mausrad:"), tags$br(),
               "Normal: ±1 Sekunde", tags$br(),
               "Shift+Rad: ±1 Frame", tags$br(),
-              "Ctrl+Rad: Geschwindigkeit"
+              "Ctrl+Rad: Videogeschwindigkeit"
             ),
             div(
               tags$strong("Tagging:"), tags$br(), 
@@ -895,11 +920,6 @@ rv <- reactiveValues(
     total_frames <- round(seconds * 30)
     return(total_frames)
   }
-  
-  # Aktualisiere die Videogeschwindigkeit, wenn sich der Slider ändert
-  observeEvent(input$videoSpeed, {
-    session$sendCustomMessage("updateSpeed", list(speed = input$videoSpeed))
-  })
   
   # Aktualisiere die Anzeige der aktuellen Videozeit
   output$currentTimeDisplay <- renderText({
@@ -1149,7 +1169,7 @@ observeEvent(input$add_tag, {
   }
   
   # Sortiere Events nach Zeit
-  rv$events <- rv$events[order(rv$events$Zeit), ]
+  rv$events <- rv$events[order(rv$events$Zeit, decreasing= TRUE ), ]
 })
 
 # Hajime Event hinzufügen
@@ -1264,8 +1284,8 @@ output$event_list <- renderDT({
   datatable(
     display_df,
     options = list(
-      pageLength = 10,
-      lengthMenu = c(5, 10, 25, 50),
+      pageLength = 15,
+      lengthMenu = c(15, 30, 50, 100),
       dom = 'lftip',
       rowCallback = JS("
       function(row, data) {
