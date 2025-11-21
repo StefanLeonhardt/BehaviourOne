@@ -474,6 +474,20 @@ ui <- page_navbar(
   visibility: visible;
   opacity: 1;
 }
+
+/* Button-Container für erste Spalte */
+.action-buttons-column {
+  min-width: 120px;
+  white-space: nowrap;
+}
+
+.action-buttons-column .edit-btn,
+.action-buttons-column .delete-btn {
+  margin-right: 3px;
+  padding: 3px 8px;
+  font-size: 11px;
+}
+
 ')),
 
 tags$script(HTML("
@@ -737,7 +751,7 @@ tags$script(HTML("
     layout_sidebar(
       sidebar = sidebar(
         width = 250,
-        open = TRUE,
+        open = FALSE,
         class = "player-sidebar",
           h5("Geladene Videos"),
           uiOutput("videoSelectionDropdown"),
@@ -1275,38 +1289,48 @@ output$event_list <- renderDT({
       display_df$Phase[display_df$Phase == phase_full] <- phase_abbreviations[phase_full]
     }
   
-  # Füge Spalten für den Bearbeiten- und Löschbutton hinzu
-  display_df$Event <- sapply(display_df$Zeit, function(time) {
-  sprintf('<button class="btn btn-sm btn-success edit-btn" data-time="%s"><i class="fa fa-edit"></i> Bearbeiten</button><button class="btn btn-sm btn-danger delete-btn" data-time="%s"><i class="fa fa-trash"></i> Löschen</button>', time, time)
+  # Füge Aktions-Spalte als erste Spalte hinzu
+  action_column <- sapply(display_df$Zeit, function(time) {
+    sprintf('<div class="action-buttons-column"><button class="btn btn-sm edit-btn" data-time="%s"><i class="fa fa-edit"></i></button><button class="btn btn-sm delete-btn" data-time="%s"><i class="fa fa-trash"></i></button></div>', time, time)
   })
+
+  # Erstelle neuen Dataframe mit Aktions-Spalte an erster Position
+  display_df <- data.frame(
+    Editieren = action_column,
+    display_df,
+    stringsAsFactors = FALSE
+  )
   
   # Datatable mit angepasstem JavaScript
-  datatable(
-    display_df,
-    options = list(
-      pageLength = 15,
-      lengthMenu = c(15, 30, 50, 100),
-      dom = 'lftip',
-      rowCallback = JS("
-      function(row, data) {
-        $(row).addClass('clickable-row');
-        $(row).on('click', function(e) {
-      // Nur wenn NICHT auf einen der Buttons geklickt wurde
-      if (!$(e.target).hasClass('delete-btn') && !$(e.target).closest('.delete-btn').length &&
-          !$(e.target).hasClass('edit-btn') && !$(e.target).closest('.edit-btn').length) {
-        Shiny.setInputValue('selected_time', data[0]);
-      }
-    });
-    
-    // Format time value as clickable
-    $('td:eq(1)', row).addClass('time-display');
-  }
-")
+datatable(
+  display_df,
+  options = list(
+    pageLength = 15,
+    lengthMenu = c(15, 30, 50, 100),
+    dom = 'lftip',
+    columnDefs = list(
+      list(orderable = FALSE, targets = 0)  # Erste Spalte nicht sortierbar
     ),
-    selection = 'none', # Ändere zu 'none', da wir unsere eigene Klick-Logik haben
-    rownames = FALSE,
-    escape = FALSE
-  )
+    rowCallback = JS("
+    function(row, data) {
+      $(row).addClass('clickable-row');
+      $(row).on('click', function(e) {
+        // Nur wenn NICHT auf einen der Buttons geklickt wurde
+        if (!$(e.target).hasClass('delete-btn') && !$(e.target).closest('.delete-btn').length &&
+            !$(e.target).hasClass('edit-btn') && !$(e.target).closest('.edit-btn').length) {
+          Shiny.setInputValue('selected_time', data[1]); // Index 1 da Aktion jetzt Index 0 ist
+        }
+      });
+      
+      // Format time value as clickable (jetzt in der zweiten Spalte)
+      $('td:eq(2)', row).addClass('time-display');
+    }
+  ")
+  ),
+  selection = 'none',
+  rownames = FALSE,
+  escape = FALSE
+)
 })
   
   # Zum ausgewählten Zeitpunkt im Video springen
