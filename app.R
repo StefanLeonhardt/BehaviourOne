@@ -59,7 +59,7 @@ griffposition_N <- c("Arm", "Armpit", "Belt", "Cest", "Hairikata", "Kata gatame 
 
 angriffsposition <- c("Back", "Direct", "Down", "Front", "Inside", "Side DX", "Side SX", "Top")
 
-taisabaki <- c("Shinzentai" = "NS", "Jigotai" = "JGT","Ayumi-ashi" = "aya", "Mae-mawari-sabaki" = "mms", "Mae-sabaki" = "mas", "Mawari-komi" = "kaw", "Oi-komi" = "okm",
+taisabaki <- c("Shinzentai" = "SHT", "Jigotai" = "JGT","Ayumi-ashi" = "aya", "Mae-mawari-sabaki" = "mms", "Mae-sabaki" = "mas", "Mawari-komi" = "kaw", "Oi-komi" = "okm",
                "Tobi-komi" = "tob", "Tsugi-ashi" = "tas", "Ushiro-mawari-sabaki" = "ums", "Ushiro-sabaki" = "uss")
 
 aktionsart <- c("Direktangriff" = "DA", "Konterangriff" = "KA", "Kombination" = "KO", "Finte" = "FI", "Ausweichen" = "AW", "Blocken" = "BL","Ausweichen mit Block" = "AWBL", "Übertriebenes Ausweichen" = "NO", "Blocken mit Ausweichen" = "BLAW", "keine Reaktion" = "kR")
@@ -109,7 +109,7 @@ categories <- list(
       ),
       "Wertung" = list(
         type = "radio",
-        choices = c("","No Score" = "NS", "Yuko" = "YU", "Waza-ari" = "WA", "Ippon" = "IP", "Shido 1" = "S1", "Shido 2" = "S2", "Shido 3" = "S3", "Hansokumake" = "HAN")
+        choices = c("","No Score" = "NS", "Yuko" = "YU", "Waza-ari" = "WA", "Ippon" = "IP")
       ),
       "Taisabaki" = list(
         type = "radio",
@@ -139,7 +139,7 @@ categories <- list(
     "Unterbrechung" = list(
       "Wertung" = list(
         type = "radio",
-        choices = c("","No Score" = "NS", "Yuko" = "YU", "Waza-ari" = "WA", "Ippon" = "IP", "Shido 1" = "S1", "Shido 2" = "S2", "Shido 3" = "S3", "Hansokumake" = "HAN")
+        choices = c("", "Shido 1" = "S1", "Shido 2" = "S2", "Shido 3" = "S3", "Hansokumake" = "HAN")
       ),
       "Art der Bestrafung" = list(
         type = "selectize",
@@ -191,7 +191,7 @@ categories <- list(
       ),
       "Wertung" = list(
         type = "radio",
-        choices = c("","No Score" = "NS", "Yuko" = "YU", "Waza-ari" = "WA", "Ippon" = "IP", "Shido 1" = "S1", "Shido 2" = "S2", "Shido 3" = "S3", "Hansokumake" = "HAN")
+        choices = c("","No Score" = "NS", "Yuko" = "YU", "Waza-ari" = "WA", "Ippon" = "IP")
       ),
       "Taisabaki" = list(
         type = "radio",
@@ -208,7 +208,7 @@ categories <- list(
         choices = angriffsposition
       )
     ),
-    "Angriff Boden" = list(
+    "Aktion Boden" = list(
       "Ne waza" = list(
         type = "selectize",
         choices = ne_waza
@@ -221,7 +221,7 @@ categories <- list(
     "Unterbrechung" = list(
       "Wertung" = list(
         type = "radio",
-        choices = c("","No Score" = "NS", "Yuko" = "YU", "Waza-ari" = "WA", "Ippon" = "IP", "Shido 1" = "S1", "Shido 2" = "S2", "Shido 3" = "S3", "Hansokumake" = "HAN")
+        choices = c("", "Shido 1" = "S1", "Shido 2" = "S2", "Shido 3" = "S3", "Hansokumake" = "HAN")
       ),
       "Art der Bestrafung" = list(
         type = "selectize",
@@ -295,6 +295,12 @@ ui <- page_navbar(
     color: #0066cc;
     text-decoration: underline;
     cursor: pointer;
+    font-weight: bold;
+  }
+
+  .time-display:hover {
+    color: #004499;
+    background-color: #f0f8ff;
   }
 
   /* Lösch-Button */
@@ -508,6 +514,7 @@ tags$script(HTML("
       var video = document.getElementById('videoPlayer');
       if (video) {
         video.currentTime = message.time;
+        console.log('Jumped to time:', message.time); // Debug output
       }
     });
     
@@ -1285,9 +1292,9 @@ output$event_list <- renderDT({
   display_df$Zeit <- round(display_df$Zeit * 10) / 10
 
   # Phase abkürzen
-    for (phase_full in names(phase_abbreviations)) {
-      display_df$Phase[display_df$Phase == phase_full] <- phase_abbreviations[phase_full]
-    }
+  for (phase_full in names(phase_abbreviations)) {
+    display_df$Phase[display_df$Phase == phase_full] <- phase_abbreviations[phase_full]
+  }
   
   # Füge Aktions-Spalte als erste Spalte hinzu
   action_column <- sapply(display_df$Zeit, function(time) {
@@ -1301,41 +1308,71 @@ output$event_list <- renderDT({
     stringsAsFactors = FALSE
   )
   
-  # Datatable mit angepasstem JavaScript
-datatable(
-  display_df,
-  options = list(
-    pageLength = 15,
-    lengthMenu = c(15, 30, 50, 100),
-    dom = 'lftip',
-    columnDefs = list(
-      list(orderable = FALSE, targets = 0)  # Erste Spalte nicht sortierbar
-    ),
+  # Datatable mit verbessertem JavaScript
+  datatable(
+    display_df,
+    options = list(
+      pageLength = 15,
+      lengthMenu = c(15, 30, 50, 100),
+      dom = 'lftip',
+      columnDefs = list(
+        list(orderable = FALSE, targets = 0)  # Erste Spalte nicht sortierbar
+      ),
     rowCallback = JS("
-    function(row, data) {
-      $(row).addClass('clickable-row');
-      $(row).on('click', function(e) {
-        // Nur wenn NICHT auf einen der Buttons geklickt wurde
-        if (!$(e.target).hasClass('delete-btn') && !$(e.target).closest('.delete-btn').length &&
-            !$(e.target).hasClass('edit-btn') && !$(e.target).closest('.edit-btn').length) {
-          Shiny.setInputValue('selected_time', data[1]); // Index 1 da Aktion jetzt Index 0 ist
-        }
-      });
-      
-      // Format time value as clickable (jetzt in der zweiten Spalte)
-      $('td:eq(2)', row).addClass('time-display');
-    }
-  ")
-  ),
-  selection = 'none',
-  rownames = FALSE,
-  escape = FALSE
-)
+      function(row, data) {
+        $(row).addClass('clickable-row');
+        
+        // Remove old event handlers to prevent duplicates
+        $(row).off('click.rowClick');
+        $('.edit-btn, .delete-btn', row).off('click');
+        
+        // Row-Click Handler for jumping to video time
+        $(row).on('click.rowClick', function(e) {
+          // Only trigger if we didn't click on a button or icon
+          if (!$(e.target).hasClass('delete-btn') && !$(e.target).closest('.delete-btn').length &&
+              !$(e.target).hasClass('edit-btn') && !$(e.target).closest('.edit-btn').length &&
+              !$(e.target).hasClass('fa') && !$(e.target).closest('button').length) {
+            
+            // Get the time value from the edit button's data-time attribute (original precise value)
+            var timeValue = $('.edit-btn', row).data('time');
+            if (timeValue !== undefined && timeValue !== null) {
+              Shiny.setInputValue('selected_time', parseFloat(timeValue), {priority: 'event'});
+            }
+          }
+        });
+        
+        // Edit Button Handler
+        $('.edit-btn', row).on('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          var timeValue = $(this).data('time');
+          Shiny.setInputValue('edit_row', timeValue, {priority: 'event'});
+        });
+        
+        // Delete Button Handler  
+        $('.delete-btn', row).on('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          var timeValue = $(this).data('time');
+          Shiny.setInputValue('delete_row', timeValue, {priority: 'event'});
+        });
+        
+        // Format time column as clickable (Zeit column is at index 2)
+        $('td:eq(2)', row).addClass('time-display');
+      }
+    ")
+    ),
+    selection = 'none',
+    rownames = FALSE,
+    escape = FALSE
+  )
 })
   
   # Zum ausgewählten Zeitpunkt im Video springen
+# Jump to selected time in video
   observeEvent(input$selected_time, {
     req(input$selected_time)
+    print(paste("Jumping to time:", input$selected_time))  # Debug output
     session$sendCustomMessage("seekToTime", list(time = as.numeric(input$selected_time)))
   })
   
