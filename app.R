@@ -60,7 +60,7 @@ griffposition_N <- c("Arm", "Armpit", "Belt", "Cest", "Hairikata", "Kata gatame 
 angriffsposition <- c("Back", "Direct", "Down", "Front", "Inside", "Side DX", "Side SX", "Top")
 
 taisabaki <- c("Shinzentai" = "SHT", "Jigotai" = "JGT","Ayumi-ashi" = "aya", "Mae-mawari-sabaki" = "mms", "Mae-sabaki" = "mas", "Mawari-komi" = "kaw", "Oi-komi" = "okm",
-               "Tobi-komi" = "tob", "Tsugi-ashi" = "tas", "Ushiro-mawari-sabaki" = "ums", "Ushiro-sabaki" = "uss")
+               "Tobi-komi" = "tob", "Tsugi-ashi" = "tas", "Ushiro-mawari-sabaki" = "ums", "Ushiro-sabaki" = "uss", "Sukashi-sabaki" = "SKS")
 
 aktionsart <- c("Direktangriff" = "DA", "Konterangriff" = "KA", "Kombination" = "KO", "Finte" = "FI", "Ausweichen" = "AW", "Blocken" = "BL","Ausweichen mit Block" = "AWBL", "Übertriebenes Ausweichen" = "NO", "Blocken mit Ausweichen" = "BLAW", "keine Reaktion" = "kR")
 
