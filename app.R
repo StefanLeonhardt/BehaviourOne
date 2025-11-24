@@ -918,24 +918,31 @@ nav_panel(
 )
 
 
-# Server für Shiny App ####
-server <- function(input, output, session) {
-  # Reaktive Werte für die Anwendung
-rv <- reactiveValues(
-  events = data.frame(
-    Zeit = numeric(0),
-    FPS = numeric(0),
-    Rolle = character(0),
-    Wertungsstand = character(0),
-    Phase = character(0),
-    Trennkommando = character(0),
-    stringsAsFactors = FALSE
-  ),
-  current_video = NULL,
-  editing = FALSE,      # Flag für Bearbeitungsmodus
-  edit_index = NULL     # Index der zu bearbeitenden Zeile
-)
-  
+  # Server für Shiny App ####
+  server <- function(input, output, session) {
+    # Reaktive Werte für die Anwendung
+  rv <- reactiveValues(
+    events = data.frame(
+      Zeit = numeric(0),
+      FPS = numeric(0),
+      Rolle = character(0),
+      Wertungsstand = character(0),
+      Phase = character(0),
+      Trennkommando = character(0),
+      stringsAsFactors = FALSE
+    ),
+    current_video = NULL,
+    editing = FALSE,      # Flag für Bearbeitungsmodus
+    edit_index = NULL     # Index der zu bearbeitenden Zeile
+  )
+
+  # Funktion zum konsistenten Sortieren der Events
+  sortEvents <- function() {
+    if (nrow(rv$events) > 0) {
+      rv$events <- rv$events[order(rv$events$Zeit, decreasing = TRUE), ]
+    }
+  }
+
   # Zeit in FPS #
   formatTime <- function(seconds) {
     total_frames <- round(seconds * 30)
@@ -1191,6 +1198,8 @@ observeEvent(input$add_tag, {
   
   # Sortiere Events nach Zeit
   rv$events <- rv$events[order(rv$events$Zeit, decreasing= TRUE ), ]
+
+  sortEvents()
 })
 
 # Hajime Event hinzufügen
@@ -1230,8 +1239,11 @@ observeEvent(input$add_hajime, {
   }
   
   # Sortiere nach Zeit
-  rv$events <- rv$events[order(rv$events$Zeit), ]
+
+  rv$events <- rv$events[order(rv$events$Zeit, decreasing = TRUE), ]
   
+  sortEvents()
+
   showNotification("Hajime-Kommando hinzugefügt", type = "message")
 })
 
@@ -1272,7 +1284,9 @@ observeEvent(input$add_mate, {
   }
   
   # Sortiere nach Zeit
-  rv$events <- rv$events[order(rv$events$Zeit), ]
+  rv$events <- rv$events[order(rv$events$Zeit, decreasing = TRUE), ]
+
+  sortEvents()
   
   showNotification("Mate-Kommando hinzugefügt", type = "message")
 })
