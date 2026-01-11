@@ -7,12 +7,11 @@ options(shiny.maxRequestSize = 5000 * 1024^2)
 library(shiny)
 library(bslib)
 library(shinyjs)
-library(DT)
+library(reactable)
+library(reactable.extras)
 library(base64enc)
 
-## Daten laden ####
-
-# Erstelle Vektoren für Kategoriensystem
+## Erstelle Vektoren für Kategoriensystem ####
 griffposition_T <- c("","kein Griff","Ärmel-Revers", "Ärmel-Rücken", "Ärmel-Kragen-oben", "Ärmel-Kragen-unten", 
                      "Ärmel-Hüfte", "Ärmel-Schulter", "Ärmel-Gürtel", "Ärmel-Ärmel", "Ärmel-NULL",
                      "Revers-Revers", "Revers-Ärmel", "Revers-Rücken", "Revers-Schulter", "Revers-Hüfte",
@@ -23,7 +22,7 @@ griffposition_T <- c("","kein Griff","Ärmel-Revers", "Ärmel-Rücken", "Ärmel-
                      "CR-Ärmel-Rücken", "CR-Ärmel-Gürtel", "CR-Ärmel-Ärmel", "CR-Gürtel-Rücken",
                      "CR-Schulter-Rücken", "CR-Revers-Rücken", "CR-Revers-Gürtel", "CR-Revers-Ärmel",
                      "NULL-Revers", "NULL-Ärmel", "NULL-Rücken", "NULL-Schulter", "NULL-Kragen-oben",
-                     "NULL-Kragen-unten", "NULL-Gürtel", "NULL-Hüfte", "DI-Ärmel-Revers", "DI-Ärmel-Gürtel",
+                     "NULL-Kragen-unten", "NULL-Gürtel", "NULL-Hüfte", "DI-ÄrmelRücken","DI-Ärmel-Revers", "DI-Ärmel-Gürtel",
                      "DI-Ärmel-Hüfte", "DI-Ärmel-Schulter", "DI-Ärmel-Ärmel", "DI-Ärmel-NULL",
                      "DI-Ärmel-Kragen", "DI-Revers-Rücken", "DI-Revers-Kragen", "DI-Revers-Hüfte",
                      "DI-Revers-NULL", "DI-Revers-Gürtel", "DI-Revers-Ärmel", "DI-Revers-Revers",
@@ -70,7 +69,7 @@ bestrafung <- c("","Non-combativity", "False attack", "Not taking grip","Blockin
 ## Definiere das Kategoriensystem mit Inputtypen ####
 categories <- list(
   "Blau" = list(
-    "Kontaktaufnahme" = list(
+    "Kontakt" = list(
       "Laufrichtung" = list(
         type = "radio",
         choices = c("Seitlich zum Mattenrand" = "SMR", "Rückwärts zum Mattenrand" = "RMR", "Vorwärts zum Mattenrand" = "VMR", "Mattenzentrum" = "MZ", "Seitlich zur Mattenecke" = "SME", "Rückwärts zur Mattenecke" = "SME", "Vorwärts zur Mattenecke" = "VME")
@@ -116,7 +115,7 @@ categories <- list(
         choices = taisabaki
       )
     ),
-    "Übergang-Stand-Boden" = list(
+    "Übergang" = list(
       "Art des ÜSB" = list(
         type = "radio",
         choices = c("nach gegner. Angriff", "nach eigen. Angriff", "nach gegner. Aktion", "nach eigen. Aktion")
@@ -152,7 +151,7 @@ categories <- list(
     )
   ),
   "Weiss" = list(
-    "Kontaktaufnahme" = list(
+    "Kontak" = list(
       "Laufrichtung" = list(
         type = "radio",
         choices = c("Seitlich zum Mattenrand" = "SMR", "Rückwärts zum Mattenrand" = "RMR", "Vorwärts zum Mattenrand" = "VMR", "Mattenzentrum" = "MZ", "Seitlich zur Mattenecke" = "SME", "Rückwärts zur Mattenecke" = "SME", "Vorwärts zur Mattenecke" = "VME")
@@ -198,7 +197,7 @@ categories <- list(
         choices = taisabaki
       )
     ),
-    "Übergang-Stand-Boden" = list(
+    "Übergang" = list(
       "Art des ÜSB" = list(
         type = "radio",
         choices = c("nach gegner. Angriff", "nach eigen. Angriff", "nach gegner. Aktion", "nach eigen. Aktion")
@@ -378,13 +377,13 @@ ui <- page_navbar(
     background-color: #dc3545 !important;
   }
 
-.recovery-panel {
-  background-color: #f7dc84ff;
-  border: 1px solid #fcbf3bff;
-  border-radius: 5px;
-  padding: 10px;
-  margin: 10px 0;
-} 
+  .recovery-panel {
+    background-color: #e26c78ff;
+    border: 1px solid #e26c78ff;
+    border-radius: 5px;
+    padding: 10px;
+    margin: 10px 0;
+  } 
 
   /* Sidebar buttons */
   .sidebar-buttons {
@@ -426,73 +425,89 @@ ui <- page_navbar(
   #videoPlayer:active { cursor: grabbing; }
 
   /* Keyboard shortcuts icon */
-.shortcuts-icon {
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
-  display: inline-block;
-  cursor: pointer;
-  color: #6c757d;
-  font-size: 18px;
-  z-index: 100;
-}
+  .shortcuts-icon {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    display: inline-block;
+    cursor: pointer;
+    color: #6c757d;
+    font-size: 18px;
+    z-index: 100;
+  }
 
-.shortcuts-icon:hover {
-  color: #68a3fcff;
-}
+  .shortcuts-icon:hover {
+    color: #68a3fcff;
+  }
 
-/* Video controls container positioning */
-.video-controls {
-  position: relative;
-}
+  /* Open Events List Styling */
+  .open-event-item:hover {
+    background-color: #e3f2fd !important;
+    border-color: #2196f3 !important;
+  }
 
-/* Tooltip für Shortcuts */
-.shortcuts-tooltip {
-  visibility: hidden;
-  width: 350px;
-  background-color: #f8f9fa;
-  color: #333;
-  text-align: left;
-  border-radius: 6px;
-  padding: 15px;
-  border: 1px solid #dee2e6;
-  position: absolute;
-  z-index: 1000;
-  bottom: 125%;
-  right: 0;
-  opacity: 0;
-  transition: opacity 0.3s;
-  font-size: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-}
+  .selected-event {
+    background-color: #e8f5e8 !important;
+    border-color: #4caf50 !important;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+  }
 
-.shortcuts-tooltip::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  right: 20px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: #f8f9fa transparent transparent transparent;
-}
+  .selected-event:hover {
+    background-color: #e8f5e8 !important;
+  }
 
-.shortcuts-icon:hover .shortcuts-tooltip {
-  visibility: visible;
-  opacity: 1;
-}
+  /* Video controls container positioning */
+  .video-controls {
+    position: relative;
+  }
 
-/* Button-Container für erste Spalte */
-.action-buttons-column {
-  min-width: 120px;
-  white-space: nowrap;
-}
+  /* Tooltip für Shortcuts */
+  .shortcuts-tooltip {
+    visibility: hidden;
+    width: 350px;
+    background-color: #f8f9fa;
+    color: #333;
+    text-align: left;
+    border-radius: 6px;
+    padding: 15px;
+    border: 1px solid #dee2e6;
+    position: absolute;
+    z-index: 1000;
+    bottom: 125%;
+    right: 0;
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  }
 
-.action-buttons-column .edit-btn,
-.action-buttons-column .delete-btn {
-  margin-right: 3px;
-  padding: 3px 8px;
-  font-size: 11px;
-}
+  .shortcuts-tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    right: 20px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #f8f9fa transparent transparent transparent;
+  }
+
+  .shortcuts-icon:hover .shortcuts-tooltip {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  /* Button-Container für erste Spalte */
+  .action-buttons-column {
+    min-width: 120px;
+    white-space: nowrap;
+  }
+
+  .action-buttons-column .edit-btn,
+  .action-buttons-column .delete-btn {
+    margin-right: 3px;
+    padding: 3px 8px;
+    font-size: 11px;
+  }
 
 ')),
 
@@ -525,6 +540,21 @@ tags$script(HTML("
       }
       $('#shortcutNotification').text(text).fadeIn().delay(1000).fadeOut();
     }
+
+    // Function to select open event
+    function selectOpenEvent(pairID) {
+      // Remove previous selection styling
+      $('.open-event-item').removeClass('selected-event');
+      
+      // Add selection styling to clicked event
+      $('#open_event_' + pairID).addClass('selected-event');
+      
+      // Update hidden input value
+      $('#selectedOpenEventID').val(pairID);
+      
+      // Trigger Shiny input change
+      Shiny.setInputValue('selectedOpenEventID', pairID);
+    }    
     
     // Keyboard Shortcuts
     $(document).keydown(function(e) {
@@ -722,8 +752,9 @@ tags$script(HTML("
   });
 "))
 
- ), 
-  ## Sidebar ####
+ ),
+
+## Sidebar ####
   sidebar = sidebar(
     width = "20%",
     position = "right",
@@ -747,17 +778,19 @@ tags$script(HTML("
   ),
   collapsible = TRUE,
   
-  ## Analyse Seite ####,
+## Analyse Seite ####
+
   nav_panel(
       "Analyse",
       # Erste Zeile mit Video und Event Tagging
       fluidRow(
         column(6,
-  card(height = "100%",
+  card(
+    height = "100%",
     card_header("Video"),
     layout_sidebar(
       sidebar = sidebar(
-        width = 250,
+        width = 200,
         open = FALSE,
         class = "player-sidebar",
           h5("Geladene Videos"),
@@ -818,31 +851,44 @@ tags$script(HTML("
   )
 ),
         column(6,  
-               card(height = "100%",
-                 card_header("Event Tagging"),
-                 # In der UI, in der card("Event Tagging"), in der fluidRow mit den RadioButtons:
-                    fluidRow(
+               card(
+                height = "100%",
+                card_header("Event Tagging"),
+                layout_sidebar(
+                  sidebar = sidebar(
+                    side = "right",
+                    width = 180,
+                    open = TRUE,
+                    class = "tagging-sidebar",
+                    # Sidebar Inhalt
+                    h6("Offene Events"),
+                    uiOutput("openPairsUI")
+                  ),
+                # In der UI, in der card("Event Tagging"), in der fluidRow mit den RadioButtons:
+                fluidRow(
                       column(3,  # Spaltenbreite angepasst 3
                             radioButtons("rolle", "Judoka",
                                           choices = c("Blau" = "B", "Weiss" = "W"),
                                           selected = "B")
-                      ),
+                            ),
                       column(3,  # Spaltenbreite angepasst 3
                             radioButtons("zeitpunkt", "Zeitpunkt",
                                         choices = c("Beginn" = "b", "Ende" = "e"),
                                         selected = "b")
-                      ),
+                            ),
                       
                       column(3,
                             radioButtons("wertungsstand", "Wertungsstand",
                                         choices = c("Führung" = "WIN", "Gleichstand" = "PARI", "Rückstand" = "LOSE"),
                                         selected = "PARI")
-                      ),
+                            ),
                       column(3,  # Spaltenbreite angepasst 3
                             selectInput("main_category", "Phase:",
                                         choices = NULL)
-                      )
-                    ),
+                            )
+                        ),
+
+                # Botton für Tagging, Hajime und Mate
                  uiOutput("criteria_ui"),
                  actionButton("add_tag", "Event taggen", class = "btn-primary"),
                  div(class = "action-btn-container",
@@ -852,9 +898,10 @@ tags$script(HTML("
                   actionButton("add_mate", "Mate", 
                               class = "btn-danger", 
                               style = "background-color: #e26c78ff; border-color: #e26c78ff; width: 48%;")
-                                )
-          )
-        )
+                    )
+                  )
+                )
+              )
       ),
       # Zweite Zeile mit der Tabelle über volle Breite
       fluidRow(
@@ -863,7 +910,7 @@ tags$script(HTML("
                  card_header("Getaggte Events"),
                  div(
                    class = "event-list",
-                   DTOutput("event_list")
+                   reactableOutput("event_list")
                  )
                )
             )
@@ -920,67 +967,108 @@ nav_panel(
 
   # Server für Shiny App ####
   server <- function(input, output, session) {
-    # Reaktive Werte für die Anwendung
-  rv <- reactiveValues(
-    events = data.frame(
-      Zeit = numeric(0),
-      FPS = numeric(0),
-      Rolle = character(0),
-      Wertungsstand = character(0),
-      Phase = character(0),
-      Trennkommando = character(0),
-      stringsAsFactors = FALSE
-    ),
-    current_video = NULL,
-    editing = FALSE,      # Flag für Bearbeitungsmodus
-    edit_index = NULL     # Index der zu bearbeitenden Zeile
-  )
-
-  # Funktion zum konsistenten Sortieren der Events
-  sortEvents <- function() {
-    if (nrow(rv$events) > 0) {
-      rv$events <- rv$events[order(rv$events$Zeit, decreasing = TRUE), ]
+    
+    # Hilfsfunktion, um konsistente Input-IDs zu generieren
+    make_input_id <- function(criterion) {
+      paste0("criterion_", gsub(" ", "_", criterion))
     }
-  }
 
-  # Zeit in FPS #
-  formatTime <- function(seconds) {
-    total_frames <- round(seconds * 30)
-    return(total_frames)
-  }
+    # Reaktive Werte für die Anwendung
+    rv <- reactiveValues(
+      events = data.frame(
+        Zeit = numeric(0),
+        FPS = numeric(0),
+        Rolle = character(0),
+        Zeitpunkt = character(0),
+        Wertungsstand = character(0),
+        Phase = character(0),
+        Trennkommando = character(0),
+        PairID = numeric(0),
+        stringsAsFactors = FALSE
+      ),
+      current_video = NULL,
+      editing = FALSE,
+      edit_index = NULL,
+      nextPairID = 1
+    )
+
+    # Filtert Events, die "b" sind, aber noch kein passendes "e" haben
+    open_pairs <- reactive({
+      df <- rv$events
+      if (nrow(df) == 0) return(df[0, , drop = FALSE])
+      
+      # Alle Beginne mit PairID
+      starts <- df[df$Zeitpunkt == "b" & !is.na(df$PairID), , drop = FALSE]
+      
+      # Alle bereits geschlossenen PairIDs (Events mit "e")
+      closed_ids <- df$PairID[df$Zeitpunkt == "e" & !is.na(df$PairID)]
+      
+      # Nur Starts zurückgeben, deren ID noch nicht geschlossen ist
+      starts[!(starts$PairID %in% closed_ids), , drop = FALSE]
+    })
+
+
+    # Funktion zum konsistenten Sortieren der Events
+    sortEvents <- function() {
+      if (nrow(rv$events) > 0) {
+        rv$events <- rv$events[order(rv$events$Zeit, decreasing = TRUE), ]
+      }
+    }
+
+    # Zeit in FPS #
+    formatTime <- function(seconds) {
+      total_frames <- round(seconds * 30)
+      return(total_frames)
+    }
   
-  # Aktualisiere die Anzeige der aktuellen Videozeit
-  output$currentTimeDisplay <- renderText({
-    req(input$currentVideoTime)
-    paste("Zeit:", formatTime(input$currentVideoTime))
-  })
+    # Hilfsfunktion zur Validierung, dass Hajime vor Events getaggt wurde
+    validate_hajime_before_event <- function() {
+      if (nrow(rv$events) == 0) {
+        return(list(valid = FALSE, message = "Hajime muss vor einem Event getaggt werden."))
+      }
+      
+      # Prüfe ob es mindestens ein Hajime-Kommando gibt
+      has_hajime <- any(rv$events$Trennkommando == "Hajime", na.rm = TRUE)
+      
+      if (!has_hajime) {
+        return(list(valid = FALSE, message = "Hajime muss vor einem Event getaggt werden."))
+      }
+      
+      return(list(valid = TRUE, message = ""))
+    }
 
-  # Reaktive Werte für Videoschnitt
-  rv$clipStartTime <- NULL
-  rv$clipEndTime <- NULL
+    # Aktualisiere die Anzeige der aktuellen Videozeit
+    output$currentTimeDisplay <- renderText({
+      req(input$currentVideoTime)
+      paste("Zeit:", formatTime(input$currentVideoTime))
+    })
 
-  # Markiere Anfang der Videosequenz
-  observeEvent(input$markStartTime, {
-    req(input$currentVideoTime)
-    rv$clipStartTime <- input$currentVideoTime
-  })
+    # Reaktive Werte für Videoschnitt
+    rv$clipStartTime <- NULL
+    rv$clipEndTime <- NULL
 
-  # Markiere Ende der Videosequenz
-  observeEvent(input$markEndTime, {
-    req(input$currentVideoTime)
-    rv$clipEndTime <- input$currentVideoTime
-  })
+    # Markiere Anfang der Videosequenz
+    observeEvent(input$markStartTime, {
+      req(input$currentVideoTime)
+      rv$clipStartTime <- input$currentVideoTime
+    })
 
-  # Zeige Start- und Endzeit an
-  output$startTimeDisplay <- renderText({
-    if (is.null(rv$clipStartTime)) return("Noch nicht markiert")
-    paste0("A: ", round(rv$clipStartTime, 1), " s (", formatTime(rv$clipStartTime), " Frames)")
-  })
+    # Markiere Ende der Videosequenz
+    observeEvent(input$markEndTime, {
+      req(input$currentVideoTime)
+      rv$clipEndTime <- input$currentVideoTime
+    })
 
-  output$endTimeDisplay <- renderText({
-    if (is.null(rv$clipEndTime)) return("Noch nicht markiert")
-    paste0("B: ", round(rv$clipEndTime, 1), " s (", formatTime(rv$clipEndTime), " Frames)")
-  })
+    # Zeige Start- und Endzeit an
+    output$startTimeDisplay <- renderText({
+      if (is.null(rv$clipStartTime)) return("Noch nicht markiert")
+      paste0("A: ", round(rv$clipStartTime, 1), " s (", formatTime(rv$clipStartTime), " Frames)")
+    })
+
+    output$endTimeDisplay <- renderText({
+      if (is.null(rv$clipEndTime)) return("Noch nicht markiert")
+      paste0("B: ", round(rv$clipEndTime, 1), " s (", formatTime(rv$clipEndTime), " Frames)")
+    })
 
   # Sequenz extrahieren
   observeEvent(input$extractClip, {
@@ -1000,7 +1088,7 @@ nav_panel(
     ))
     
     showNotification("Videosequenz wird extrahiert...", type = "message", duration = 5)
-  })
+    })
 
   
   # Dropdown für die Videoauswahl aktualisieren
@@ -1020,15 +1108,24 @@ nav_panel(
     }
   })
   
+
 # Update main category choices based on selected role
-        observe({
-          role <- input$rolle
-          
-          if (!is.null(role) && role %in% names(categories)) {
-            main_cats <- names(categories[[role]])
-            updateSelectInput(session, "main_category", choices = main_cats)
-          }
-        })
+observe({
+  role <- input$rolle
+  
+  if (!is.null(role) && role %in% names(categories)) {
+    main_cats <- names(categories[[role]])
+    updateSelectInput(session, "main_category", choices = main_cats)
+    
+    # Wenn im Edit-Modus und eine Phase bereits ausgewählt ist, diese beibehalten
+    if (rv$editing && !is.null(rv$edit_index)) {
+      current_phase <- rv$events$Phase[rv$edit_index]
+      if (!is.na(current_phase) && current_phase %in% main_cats) {
+        updateSelectInput(session, "main_category", selected = current_phase)
+      }
+    }
+  }
+})
   
 # Dynamisches UI für die Kriterien basierend auf der ausgewählten Hauptkategorie erstellen
 output$criteria_ui <- renderUI({
@@ -1046,7 +1143,7 @@ output$criteria_ui <- renderUI({
   # Erstelle UI-Elemente für jedes Kriterium
   criteria_uis <- lapply(names(criteria_list), function(criterion_name) {
     criterion_info <- criteria_list[[criterion_name]]
-    input_id <- paste0("criterion_", gsub(" ", "_", criterion_name))
+    input_id <- make_input_id(criterion_name)
     
     # Je nach definiertem Typ das passende UI-Element erstellen
     if (criterion_info$type == "select") {
@@ -1097,109 +1194,250 @@ output$criteria_ui <- renderUI({
   # Gibt alle UI-Elemente zurück
   do.call(tagList, criteria_uis)
 })
+
+    
+# Visuelle Liste für offene Events in der Sidebar erstellen    
+output$openPairsUI <- renderUI({
+  op <- open_pairs()
   
+  if (nrow(op) == 0) {
+    return(tags$div(
+      style = "padding: 10px; color: #888; font-style: italic; text-align: center; border: 1px dashed #ccc; border-radius: 5px;",
+      "Keine offenen Events"
+    ))
+  }
+
+  # Erstelle für jedes Event einen Button
+  event_buttons <- lapply(1:nrow(op), function(i) {
+    event <- op[i, ]
+    
+    # Farbe je nach Rolle (blau/weiß) für bessere Übersicht
+    border_color <- if(event$Rolle == "Blau" || event$Rolle == "B") "#007bff" else "#ffffff" # Weiß bekommt Rahmen oder Hintergrund
+    bg_class <- if(event$Rolle == "Blau" || event$Rolle == "B") "btn-primary" else "btn-light"
+    text_color <- if(event$Rolle == "Blau" || event$Rolle == "B") "white" else "black"
+    
+    tags$button(
+      id = paste0("open_btn_", event$PairID),
+      class = paste("btn btn-block btn-sm action-button", bg_class), # 'action-button' ist wichtig für Shiny Inputs!
+      style = paste0("width: 100%; margin-bottom: 5px; text-align: left; border-left: 5px solid ", border_color, ";"),
+      
+      # JavaScript: Beim Klick ID in das hidden input schreiben UND Button-Click simulieren
+      onclick = sprintf("Shiny.setInputValue('selectedOpenEventID', %d);", event$PairID),
+      
+      tags$div(
+        style = "display: flex; justify-content: space-between; align-items: center;",
+        tags$span(style = "font-weight: bold;", paste0("#", event$PairID)),
+        tags$span(style = "font-size: 0.9em;", event$Phase)
+      ),
+      tags$div(
+        style = "font-size: 0.8em; opacity: 0.8;",
+        paste0(event$Rolle, " | ", round(event$Zeit, 1), "s")
+      )
+    )
+  })
+
+  tagList(
+    do.call(tagList, event_buttons)
+  )
+})
+
+   
+#  Werte aus dem offenen Event übernehmen
+# Automatisch Werte aus dem ausgewählten offenen Event übernehmen
+observeEvent(input$selectedOpenEventID, {
+  req(input$selectedOpenEventID)
+  
+  # Event laden
+  op <- open_pairs()
+  st <- op[op$PairID == as.numeric(input$selectedOpenEventID), , drop = FALSE]
+  
+  if(nrow(st) == 0) return() # Falls ID nicht mehr gültig
+  
+  # 1. Basis-Werte setzen
+  updateRadioButtons(session, "rolle", selected = st$Rolle)
+  updateRadioButtons(session, "zeitpunkt", selected = "e") # Automatisch auf Ende
+  updateRadioButtons(session, "wertungsstand", selected = st$Wertungsstand)
+  updateSelectInput(session, "main_category", selected = st$Phase)
+  
+  # 2. Kriterien setzen (mit Verzögerung für UI-Refresh)
+  shinyjs::delay(300, {
+    role <- st$Rolle
+    phase <- st$Phase
+    
+    if (!is.null(categories[[role]]) && !is.null(categories[[role]][[phase]])) {
+      criterianames <- names(categories[[role]][[phase]])
+      
+      for (criterion in criterianames) {
+        inputid <- make_input_id(criterion)
+        
+        if (criterion %in% names(st)) {
+          val <- st[[criterion]]
+          cinfo <- categories[[role]][[phase]][[criterion]]
+          
+          if (identical(cinfo$type, "checkbox")) {
+            sel <- unlist(strsplit(val, ",\\s*"))
+            updateCheckboxGroupInput(session, inputid, selected = sel)
+          } else if (identical(cinfo$type, "radio")) {
+            updateRadioButtons(session, inputid, selected = val)
+          } else {
+            updateSelectInput(session, inputid, selected = val)
+          }
+        }
+      }
+    }
+    # Visuelles Feedback: Zeige an, welches Event gewählt wurde
+    showNotification(paste("Event #", st$PairID, "zur Beendigung ausgewählt."), type = "message", duration = 3)
+  })
+})
+
+   
 # Event hinzufügen oder aktualisieren, wenn der Button geklickt wird
 observeEvent(input$add_tag, {
+  
+  # 1. Prüfen, ob notwendige Eingaben da sind
   req(input$rolle, input$main_category)
   
-  # Sammle alle Kriterien-Werte
-  role <- input$rolle  # Direkt verwenden
-  main_cat <- input$main_category
+  # 2. Validation: Hajime muss vor Events getaggt werden (außer im Edit-Modus)
+  if (!rv$editing) {
+    validation_result <- validate_hajime_before_event()
+    if (!validation_result$valid) {
+      showNotification(validation_result$message, type = "error", duration = 5)
+      return()
+    }
+  }
   
-  # Zeit vom Video oder aus bestehendem Event
-  time_point <- if (rv$editing && !is.null(rv$edit_index)) {
+  # Hilfsvariablen
+  role <- input$rolle
+  maincat <- input$main_category
+  
+  # 3. Zeitpunkt bestimmen
+  timepoint <- if (rv$editing && !is.null(rv$edit_index)) {
     rv$events$Zeit[rv$edit_index]
   } else {
     req(input$tagCurrentTime)
     input$tagCurrentTime
   }
+  timeformatted <- formatTime(timepoint)
   
-  time_formatted <- formatTime(time_point)
-  
-  # Hole die Kriterien für diese Kategorie
-  criteria_names <- names(categories[[role]][[main_cat]])
-  
-  # Erstelle eine Liste der gewählten Werte
+  # 4. Kriterienwerte aus der UI sammeln
+  criteria_names <- names(categories[[role]][[input$main_category]])
   selected_values <- list()
+
   for (criterion in criteria_names) {
-    input_id <- paste0("criterion_", gsub(" ", "_", criterion))
+    input_id <- make_input_id(criterion)
     if (!is.null(input[[input_id]])) {
       selected_values[[criterion]] <- input[[input_id]]
     }
   }
   
-  # Erstelle einen neuen Eintrag für die Datentabelle
-  new_row <- data.frame(
-    Zeit = time_point,
-    FPS = time_formatted,
+  # 5. Die neue Zeile erstellen (newrow)
+  newrow <- data.frame(
+    Zeit = timepoint,
+    FPS = timeformatted,
     Rolle = input$rolle,
     Zeitpunkt = input$zeitpunkt,
     Wertungsstand = input$wertungsstand,
-    Phase = main_cat,
+    Phase = maincat,
+    PairID = NA,
+    Trennkommando = NA, # Wichtig: Explizit hinzufügen
     stringsAsFactors = FALSE
   )
-  
-  # Füge ausgewählte Kriterien hinzu
-  for (criterion in names(selected_values)) {
-    # Wenn es sich um einen Vektor handelt (z.B. bei Checkboxen), verbinde die Werte
-    if (length(selected_values[[criterion]]) > 1) {
-      new_row[[criterion]] <- paste(selected_values[[criterion]], collapse = ", ")
-    } else {
-      new_row[[criterion]] <- selected_values[[criterion]]
-    }
+
+  # 6. Kriterien-Werte zum newrow hinzufügen
+  for (criterion_name in names(selected_values)) {
+    newrow[[criterion_name]] <- selected_values[[criterion_name]]
   }
   
-  # Im Bearbeitungsmodus: ersetze die existierende Zeile
+  # 7. PairID-Logik
+  if (input$zeitpunkt == "b") {
+    # Neuer Beginn -> Neue Nummer ziehen
+    newrow$PairID <- rv$nextPairID
+    rv$nextPairID <- rv$nextPairID + 1
+    
+  } else if (input$zeitpunkt == "e") {
+    # Ende -> Nummer aus dem zuletzt geklickten offenen Event holen
+    if (is.null(input$selectedOpenEventID) || input$selectedOpenEventID == "") {
+      showNotification("Fehler: Bitte klicke zuerst auf ein offenes Event in der Liste!", type = "error")
+      return()
+    }
+    newrow$PairID <- as.numeric(input$selectedOpenEventID)
+    
+    # Optional: ID zurücksetzen, damit man nicht versehentlich das gleiche nochmal taggt
+    # shinyjs::runjs("Shiny.setInputValue('selectedOpenEventID', null);") 
+  }
+
+  
+  # 8. In die Tabelle einfügen oder Zeile aktualisieren
   if (rv$editing && !is.null(rv$edit_index)) {
-    # Stelle sicher, dass alle Spalten in beiden Dataframes vorhanden sind
-    for (col in names(new_row)) {
+    
+    # Sicherheitscheck: Prüfe ob edit_index noch gültig ist
+    if (rv$edit_index > nrow(rv$events) || rv$edit_index < 1) {
+      showNotification("Fehler: Ungültiger Edit-Index. Vorgang abgebrochen.", type = "error")
+      rv$editing <- FALSE
+      rv$edit_index <- NULL
+      return()
+    }
+    
+    # Alte PairID behalten, wenn nicht explizit geändert
+    existing_pair_id <- rv$events$PairID[rv$edit_index]
+    if (!is.na(existing_pair_id) && is.na(newrow$PairID)) {
+      newrow$PairID <- existing_pair_id
+    }
+    
+    # Spalten abgleichen - WICHTIG: Dies muss vor dem Update der Zeile passieren
+    for (col in names(newrow)) {
       if (!col %in% names(rv$events)) {
         rv$events[[col]] <- NA
       }
     }
     for (col in names(rv$events)) {
-      if (!col %in% names(new_row)) {
-        new_row[[col]] <- NA
+      if (!col %in% names(newrow)) {
+        newrow[[col]] <- NA
       }
     }
     
-    # Ersetze die Zeile
-    rv$events[rv$edit_index, names(new_row)] <- new_row
+    # Zeile aktualisieren
+    rv$events[rv$edit_index, names(newrow)] <- newrow
     
-    # Bearbeitungsmodus zurücksetzen
+    # Reset nach dem Bearbeiten
     rv$editing <- FALSE
     rv$edit_index <- NULL
-    
-    # Button-Erscheinungsbild zurücksetzen
     shinyjs::removeClass(selector = "#add_tag", class = "btn-success")
     shinyjs::html("add_tag", "Event taggen")
+    showNotification("Event aktualisiert", type = "message")
     
-    showNotification("Event wurde aktualisiert", type = "message")
   } else {
-    # Im normalen Modus: füge eine neue Zeile hinzu
-    if (nrow(rv$events) == 0) {
-      rv$events <- new_row
-    } else {
-      # Stelle sicher, dass alle Spalten in beiden Dataframes vorhanden sind
-      for (col in names(new_row)) {
-        if (!col %in% names(rv$events)) {
-          rv$events[[col]] <- NA
-        }
+    
+    # Spalten abgleichen (für neue Events) 
+    for (col in names(newrow)) {
+      if (!col %in% names(rv$events)) {
+        rv$events[[col]] <- NA
       }
-      for (col in names(rv$events)) {
-        if (!col %in% names(new_row)) {
-          new_row[[col]] <- NA
-        }
-      }
-      
-      rv$events <- rbind(rv$events, new_row)
     }
+    for (col in names(rv$events)) {
+      if (!col %in% names(newrow)) {
+        newrow[[col]] <- NA
+      }
+    }
+    
+    # Zeile anfügen
+    if (nrow(rv$events) == 0) {
+      rv$events <- newrow
+    } else {
+      rv$events <- rbind(rv$events, newrow)
+    }
+    
+    sortEvents()
+    showNotification("Event erfolgreich getaggt", type = "message")
+
+    # Automatisch zurück auf "b" setzen nach erfolgreichem Ende-Event
+    if (input$zeitpunkt == "e") {
+      updateRadioButtons(session, "zeitpunkt", selected = "b")
+      # Optional: Ausgewähltes offenes Event zurücksetzen
+      shinyjs::runjs("Shiny.setInputValue('selectedOpenEventID', null);")
+    }    
   }
   
-  # Sortiere Events nach Zeit
-  rv$events <- rv$events[order(rv$events$Zeit, decreasing= TRUE ), ]
-
-  sortEvents()
 })
 
 # Hajime Event hinzufügen
@@ -1217,6 +1455,7 @@ observeEvent(input$add_hajime, {
     Zeitpunkt = NA,
     Phase = NA,
     Trennkommando = "Hajime",
+    PairID = NA, # Hajime/Mate haben keine PairID
     stringsAsFactors = FALSE
   )
   
@@ -1262,6 +1501,7 @@ observeEvent(input$add_mate, {
     Zeitpunkt = NA,
     Phase = NA,
     Trennkommando = "Mate",
+    PairID = NA, # Hajime/Mate haben keine PairID
     stringsAsFactors = FALSE
   )
   
@@ -1292,95 +1532,160 @@ observeEvent(input$add_mate, {
 })
   
 # Anzeige der getaggten Events in einer Tabelle
-output$event_list <- renderDT({
+output$event_list <- renderReactable({
+
   req(rv$events)
+  if (nrow(rv$events) == 0) return(NULL)
   
-  if (nrow(rv$events) == 0) {
-    return(NULL)
+  # 1. Datenbasis: Kopie der Events nehmen
+  df <- rv$events
+  
+  # 2. Sortieren (Wichtig für Index-Konsistenz)
+  df <- df[order(df$Zeit, decreasing = TRUE), ]
+  
+  # 3. Phasen abkürzen (deine bestehende Logik)
+  for(phase_full in names(phase_abbreviations)) {
+    if("Phase" %in% names(df)) {
+       df$Phase[df$Phase == phase_full] <- phase_abbreviations[phase_full]
+    }
   }
   
-  # Formatiere Tabelle für Anzeige
-  display_df <- rv$events
-
-  # Runde die Zeit-Spalte auf eine Dezimalstelle
-  display_df$Zeit <- round(display_df$Zeit * 10) / 10
-
-  # Phase abkürzen
-  for (phase_full in names(phase_abbreviations)) {
-    display_df$Phase[display_df$Phase == phase_full] <- phase_abbreviations[phase_full]
+  # 4. Zeit runden
+  if("Zeit" %in% names(df)) {
+    df$Zeit <- round(df$Zeit, 1)
   }
-  
-  # Füge Aktions-Spalte als erste Spalte hinzu
-  action_column <- sapply(display_df$Zeit, function(time) {
-    sprintf('<div class="action-buttons-column"><button class="btn btn-sm edit-btn" data-time="%s"><i class="fa fa-edit"></i></button><button class="btn btn-sm delete-btn" data-time="%s"><i class="fa fa-trash"></i></button></div>', time, time)
-  })
 
-  # Erstelle neuen Dataframe mit Aktions-Spalte an erster Position
-  display_df <- data.frame(
-    Editieren = action_column,
-    display_df,
-    stringsAsFactors = FALSE
-  )
+  # Wir fügen sie als erste Spalte hinzu. NA als Inhalt reicht.
+  df <- cbind(Action = NA, df)
   
-  # Datatable mit verbessertem JavaScript
-  datatable(
-    display_df,
-    options = list(
-      pageLength = 15,
-      lengthMenu = c(15, 30, 50, 100),
-      dom = 'lftip',
-      columnDefs = list(
-        list(orderable = FALSE, targets = 0)  # Erste Spalte nicht sortierbar
-      ),
-    rowCallback = JS("
-      function(row, data) {
-        $(row).addClass('clickable-row');
-        
-        // Remove old event handlers to prevent duplicates
-        $(row).off('click.rowClick');
-        $('.edit-btn, .delete-btn', row).off('click');
-        
-        // Row-Click Handler for jumping to video time
-        $(row).on('click.rowClick', function(e) {
-          // Only trigger if we didn't click on a button or icon
-          if (!$(e.target).hasClass('delete-btn') && !$(e.target).closest('.delete-btn').length &&
-              !$(e.target).hasClass('edit-btn') && !$(e.target).closest('.edit-btn').length &&
-              !$(e.target).hasClass('fa') && !$(e.target).closest('button').length) {
-            
-            // Get the time value from the edit button's data-time attribute (original precise value)
-            var timeValue = $('.edit-btn', row).data('time');
-            if (timeValue !== undefined && timeValue !== null) {
-              Shiny.setInputValue('selected_time', parseFloat(timeValue), {priority: 'event'});
-            }
-          }
-        });
-        
-        // Edit Button Handler
-        $('.edit-btn', row).on('click', function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          var timeValue = $(this).data('time');
-          Shiny.setInputValue('edit_row', timeValue, {priority: 'event'});
-        });
-        
-        // Delete Button Handler  
-        $('.delete-btn', row).on('click', function(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          var timeValue = $(this).data('time');
-          Shiny.setInputValue('delete_row', timeValue, {priority: 'event'});
-        });
-        
-        // Format time column as clickable (Zeit column is at index 2)
-        $('td:eq(2)', row).addClass('time-display');
-      }
-    ")
+  # Wähle die Spalten in der gewünschten Reihenfolge aus
+  # Wir suchen alle Spaltennamen, entfernen die, die wir explizit setzen, und hängen den Rest hinten an.
+  desired_order <- c("Action", "PairID", "Zeit", "FPS") # Deine Wunsch-Reihenfolge vorne
+  remaining_cols <- setdiff(names(df), desired_order)
+  
+  df <- df[, c(desired_order, remaining_cols)]
+
+
+ # Theme Logik: Hell oder Dunkel
+# Prüfen, ob input$dark_mode existiert und aktiv ist
+is_dark <- isTRUE(input$dark_mode) || isTRUE(input$dark_mode == "dark")
+
+# Theme definieren
+my_theme <- if (is_dark) {
+  reactableTheme(
+    color = "#f8f9fa",              # Textfarbe hell
+    backgroundColor = "#212529",    # Hintergrund dunkel
+    borderColor = "#495057",           # Rahmenfarbe
+    stripedColor = "#78C2AD",       # Streifenfarbe
+    headerStyle = list(
+      backgroundColor = "#343a40",  # Kopfzeile dunkler
+      color = "#ffffff"
     ),
-    selection = 'none',
+    # Spalten-Filter (filterable = TRUE)
+    filterInputStyle = list(
+      backgroundColor = "#343a40",  # Dunkler Hintergrund für Eingabefelder
+      color = "#f8f9fa",            # Heller Text
+      borderColor = "#6c757d"       # Angepasster Rahmen
+    ),
+    
+    # Seiten-Auswahl & Zeilenanzahl (pageSizeOptions)
+    selectStyle = list(
+      backgroundColor = "#343a40", 
+      color = "#f8f9fa",
+      borderColor = "#6c757d"
+    ),
+    
+    # Pagination Buttons (Seitenzahlen)
+    pageButtonStyle = list(
+      color = "#f8f9fa",
+      "&:hover" = list(backgroundColor = "#495057"), # Hover-Effekt für Buttons
+      "&[aria-current='page']" = list(backgroundColor = "#78C2AD", color = "#212529")
+    ),
+
+    rowStyle = list(
+      "&:hover" = list(backgroundColor = "#495057") # Hover heller im Darkmode
+    ),
+    searchInputStyle = list(backgroundColor = "#ffffff", color = "#000000ff")
+
+  )
+} else {
+  # Helles Standard-Theme
+  reactableTheme(
+    rowStyle = list(
+      "&:hover" = list(backgroundColor = "#f0f8ff") # Hover hellblau
+    )
+  )
+} 
+
+  # 5. Reactable erstellen
+  reactable(
+    df,
+    rowStyle = list(cursor = "pointer"),
     rownames = FALSE,
-    escape = FALSE
+    theme = my_theme,
+
+    # Erweiterte Pagination
+    defaultPageSize = 15,                    # Startwert
+    pageSizeOptions = c(15, 25, 50, 100, 200), # Mehr Optionen
+    showPageSizeOptions = TRUE,
+    showPagination = TRUE,
+    paginationType = "jump",                 # Ermöglicht direktes Springen zu Seiten
+    showPageInfo = TRUE,                     # Zeigt "1-25 von 150
+    
+    # Nach Zeit absteigend sortieren
+    defaultSorted = list(Zeit = "desc"),
+    filterable = TRUE,
+
+
+    # JavaScript Click Handler (Korrigiert mit 'Action')
+    onClick = JS("function(rowInfo, column) {
+      // Wenn NICHT auf die Action-Spalte geklickt wurde...
+      if (column.id !== 'Action') {
+        var time = rowInfo.values.Zeit;
+        Shiny.setInputValue('selectedtime_reactable', time, {priority: 'event'});
+      }
+    }"),
+    
+    columns = list(
+      # Definition der Action-Spalte (Buttons)
+      Action = colDef(
+        name = "Editieren",
+        header = "Editieren",
+        sortable = FALSE,
+        width = 90, # Etwas breiter für 2 Buttons
+        cell = function(value, index) {
+          # Buttons rendern
+          # index ist hier der Zeilenindex der ANZEIGE (1, 2, 3...)
+          
+          # HTML bauen
+          div(
+            style = "display: flex; gap: 5px;",
+            tags$button(
+              class = "btn btn-xs btn-info", 
+              style = "padding: 1px 5px;",
+              onclick = sprintf("Shiny.setInputValue('edit_row_reactable', %d, {priority: 'event'}); event.stopPropagation();", index),
+              tags$i(class = "fas fa-edit")
+            ),
+            tags$button(
+              class = "btn btn-xs btn-danger", 
+              style = "padding: 1px 5px;",
+              onclick = sprintf("Shiny.setInputValue('delete_row_reactable', %d, {priority: 'event'}); event.stopPropagation();", index),
+              tags$i(class = "fas fa-trash")
+            )
+          )
+        }
+      ),
+      
+      # Andere Spalten formatieren
+      Zeit = colDef(name = "Zeit [s]", width = 70),
+      FPS = colDef(name = "FPS", width = 90),
+      PairID = colDef(name = "PairID", width = 50),
+      # Verstecke Spalten, die man nicht sehen muss (optional)
+      Trennkommando = colDef(show = FALSE) 
+    )
   )
 })
+
   
   # Zum ausgewählten Zeitpunkt im Video springen
 # Jump to selected time in video
@@ -1390,101 +1695,112 @@ output$event_list <- renderDT({
     session$sendCustomMessage("seekToTime", list(time = as.numeric(input$selected_time)))
   })
   
-# Einzelne Zeile löschen
-observeEvent(input$delete_row, {
-  req(input$delete_row)
-  time_to_delete <- as.numeric(input$delete_row)
+# 1. Handler für LÖSCHEN (Mülleimer-Symbol)
+observeEvent(input$delete_row_reactable, {
+  # input$delete_row_reactable liefert uns den Zeilen-Index (1, 2, 3...) der angezeigten Tabelle
+  index <- input$delete_row_reactable
+  req(index)
   
-  # Finde den Index der zu löschenden Zeile - präziserer Vergleich
-  # Benutze which.min() um den genauesten Treffer zu finden
-  differences <- abs(rv$events$Zeit - time_to_delete)
-  if(length(differences) > 0 && min(differences) < 0.1) { # Toleranz von 0.1 Sekunden
-    row_index <- which.min(differences)
-    
-    # Lösche die Zeile
-    rv$events <- rv$events[-row_index, , drop = FALSE]
-    
-    # Melde Erfolg
-    showNotification("Event wurde gelöscht", type = "message")
-  } else {
-    # Melde Fehler wenn keine passende Zeit gefunden wurde
-    showNotification("Konnte kein passendes Event finden", type = "error")
-  }
+  # Da die Tabelle sortiert angezeigt wird (Neueste zuerst), rv$events aber oft unsortiert ist,
+  # müssen wir den "echten" Index in den Daten finden.
+  
+  # Wir rekonstruieren die Sortierung der Anzeige:
+  sorted_indices <- order(rv$events$Zeit, decreasing = TRUE)
+  
+  # Der Index in der Tabelle entspricht diesem Eintrag in den echten Daten:
+  real_index <- sorted_indices[index]
+  
+  # Zeile löschen
+  rv$events <- rv$events[-real_index, , drop = FALSE]
+  
+  showNotification("Event gelöscht.", type = "message")
 })
 
-# Bearbeitungsmodus aktivieren
-observeEvent(input$edit_row, {
-  req(input$edit_row)
-  time_to_edit <- as.numeric(input$edit_row)
+
+# 2. Handler für BEARBEITEN (Stift-Symbol)
+observeEvent(input$edit_row_reactable, {
+  index <- input$edit_row_reactable
+  req(index)
   
-  # Finde den Index der zu bearbeitenden Zeile
-  differences <- abs(rv$events$Zeit - time_to_edit)
-  if(length(differences) > 0 && min(differences) < 0.1) { # Toleranz von 0.1 Sekunden
-    row_index <- which.min(differences)
+  # Wieder den echten Index finden (wegen Sortierung)
+  sorted_indices <- order(rv$events$Zeit, decreasing = TRUE)
+  real_index <- sorted_indices[index]
+  
+  # Modus setzen
+  rv$editing <- TRUE
+  rv$edit_index <- real_index # Wir merken uns den Index in rv$events!
+  
+  # Daten laden
+  eventdata <- rv$events[real_index, ]
+  
+  print(paste("Bearbeite Event ID:", eventdata$PairID, "bei Zeit:", eventdata$Zeit)) # Debug
+  
+  # 1. Video zur Zeit springen lassen
+  session$sendCustomMessage("seekToTime", list(time = eventdata$Zeit))
+  
+  # 2. UI-Button ändern (Visuelles Feedback)
+  shinyjs::addClass(selector = "#add_tag", class = "btn-success")
+  shinyjs::html("add_tag", "Event aktualisieren")
+  
+  # 3. Formularfelder füllen (Basisdaten)
+  updateRadioButtons(session, "rolle", selected = eventdata$Rolle)
+  updateRadioButtons(session, "zeitpunkt", selected = eventdata$Zeitpunkt)
+  updateRadioButtons(session, "wertungsstand", selected = eventdata$Wertungsstand)
+  updateSelectInput(session, "main_category", selected = eventdata$Phase)
+  
+  # Falls du das manuelle Zeitfeld eingebaut hast:
+  # updateNumericInput(session, "manualTime", value = eventdata$Zeit)
+  
+  # 4. Dynamische Kriterien füllen (Verzögert, damit UI erst rendern kann)
+  shinyjs::delay(300, {
+    role <- eventdata$Rolle
+    phase <- eventdata$Phase
     
-    # Setze Bearbeitungsmodus
-    rv$editing <- TRUE
-    rv$edit_index <- row_index
-    
-    # Event Daten laden
-    event_data <- rv$events[row_index, ]
-    
-    # Debug-Ausgabe
-    print(paste("Bearbeite Event an Zeit:", event_data$Zeit))
-    print(event_data)
-    
-    # Rolle und Hauptkategorie aktualisieren
-    updateRadioButtons(session, "rolle", selected = event_data$Rolle)
-    updateRadioButtons(session, "zeitpunkt", selected = event_data$Zeitpunkt)
-    updateRadioButtons(session, "wertungsstand", selected = event_data$Wertungsstand)
-    updateSelectInput(session, "main_category", selected = event_data$Phase)
-    
-    # Verzögerung erhöhen und überprüfen, ob die Hauptkategorie korrekt gesetzt wurde
-    shinyjs::delay(500, {
-      if (input$main_category != event_data$Phase) {
-        updateSelectInput(session, "main_category", selected = event_data$Phase)
-      }
+    # Prüfen ob Kriterien existieren
+    if (!is.null(categories[[role]]) && !is.null(categories[[role]][[phase]])) {
+      criterianames <- names(categories[[role]][[phase]])
       
-      # Nochmals verzögert die Kriterien aktualisieren
-      shinyjs::delay(300, {
-        # Alle Kriterien für diese Kategorie durchlaufen
-        criteria_names <- names(categories[[event_data$Rolle]][[event_data$Phase]])
-        for (criterion in criteria_names) {
-          input_id <- paste0("criterion_", gsub(" ", "_", criterion))
+      for (criterion in criterianames) {
+        # Input-ID generieren (mit deiner Hilfsfunktion oder Logik)
+        inputid <- make_input_id(criterion) 
+        
+        # Wert aus den Daten holen, falls vorhanden
+        if (criterion %in% names(eventdata)) {
+          val <- eventdata[[criterion]]
           
-          # Wenn der Wert in den Event-Daten existiert
-          if (criterion %in% names(event_data) && !is.na(event_data[[criterion]])) {
-            # Feld-Typ bestimmen
-            criterion_type <- categories[[event_data$Rolle]][[event_data$Phase]][[criterion]]$type
-            
-            print(paste("Aktualisiere Feld:", input_id, "mit Wert:", event_data[[criterion]]))
-            
-            if (criterion_type == "select" || criterion_type == "selectize") {
-              updateSelectInput(session, input_id, selected = event_data[[criterion]])
-            } else if (criterion_type == "radio") {
-              updateRadioButtons(session, input_id, selected = event_data[[criterion]])
-            } else if (criterion_type == "checkbox") {
-              # Bei Checkbox die Werte teilen
-              selected_values <- unlist(strsplit(event_data[[criterion]], ", "))
-              updateCheckboxGroupInput(session, input_id, selected = selected_values)
-            }
+          # Input-Typ bestimmen (um Checkboxen richtig zu behandeln)
+          cinfo <- categories[[role]][[phase]][[criterion]]
+          
+          if (identical(cinfo$type, "checkbox")) {
+            # Kommagetrennte Werte aufsplitten
+            sel <- unlist(strsplit(val, ",\\s*"))
+            updateCheckboxGroupInput(session, inputid, selected = sel)
+          } else if (identical(cinfo$type, "radio")) {
+            updateRadioButtons(session, inputid, selected = val)
+          } else {
+            # Select / Selectize
+            updateSelectInput(session, inputid, selected = val)
           }
         }
-        
-        # Button-Erscheinungsbild ändern
-        shinyjs::addClass(selector = "#add_tag", class = "btn-success")
-        shinyjs::html("add_tag", "Event aktualisieren")
-      })
-    })
-    
-    # Zum Zeitpunkt im Video springen
-    session$sendCustomMessage("seekToTime", list(time = event_data$Zeit))
-    
-    # Melde Erfolg
-    showNotification("Event wird bearbeitet. Aktualisieren Sie die Werte und klicken Sie auf 'Event aktualisieren'.", 
-                     type = "message", duration = 5)
-  }
-})  
+      }
+    }
+  })
+})
+
+
+# 3. Handler für ZEILENKLICK (Video springen ohne Editieren)
+observeEvent(input$selectedtime_reactable, {
+  # Dieser Input wird vom JavaScript im reactable onClick gesetzt
+  time_val <- as.numeric(input$selectedtime_reactable)
+  req(time_val)
+  
+  # Video springen lassen
+  session$sendCustomMessage("seekToTime", list(time = time_val))
+})
+
+
+# Bearbeitungsmodus aktivieren
+  
 
 # Platzhalter für Auswertungs-Outputs
 output$overview_plot <- renderPlot({
@@ -1596,6 +1912,7 @@ output$comparison_plot <- renderPlot({
     rv$events <- data.frame(
       Zeit = numeric(0),
       FPS = numeric(0),  # Korrigiert von "ZeitFormatiert" zu "FPS"
+      PairID = numeric(0),
       Rolle = character(0),
       Zeitpunkt = character(0),
       Wertungsstand = character(0),
@@ -1839,7 +2156,7 @@ observeEvent(input$restore_selected, {
                     type = "message")
   }
 })
-}
+  }
 
 # App starten
 shinyApp(ui, server)
