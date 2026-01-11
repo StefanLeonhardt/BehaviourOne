@@ -1,8 +1,6 @@
 # Dies ist eine Shiny web Applikation zum Tagging von Judowettkämpfen #
 
 # Setup ####
-## Set maximum upload Größe auf 5GB pro Video ####
-options(shiny.maxRequestSize = 5000 * 1024^2)
 ## R-Pakete laden ####
 library(shiny)
 library(bslib)
@@ -10,6 +8,9 @@ library(shinyjs)
 library(reactable)
 library(reactable.extras)
 library(base64enc)
+
+## Set maximum upload Größe auf 5GB pro Video ####
+options(shiny.maxRequestSize = 5000 * 1024^2)
 
 ## Erstelle Vektoren für Kategoriensystem ####
 griffposition_T <- c("","kein Griff","Ärmel-Revers", "Ärmel-Rücken", "Ärmel-Kragen-oben", "Ärmel-Kragen-unten", 
